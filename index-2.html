@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cuvva - check if a vehicle is insured by us</title>
+  <link rel="icon" type="image/svg+xml" href="cuvva-logo-white.svg" />
+  <style>
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: #f5f5f5;
+      color: #1a1a1a;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── Header ── */
+    header {
+      background: #1a1a2e;
+      padding: 14px 24px;
+    }
+
+    .header-inner {
+      max-width: 960px;
+      margin: 0 auto;
+    }
+
+    .logo {
+      display: inline-flex;
+      align-items: center;
+      text-decoration: none;
+      gap: 10px;
+    }
+
+    .logo img {
+      height: 28px;
+      width: auto;
+    }
+
+    .logo-text {
+      color: #fff;
+      font-size: 1.25rem;
+      font-weight: 700;
+      letter-spacing: -0.3px;
+    }
+
+    .logo-tagline {
+      color: rgba(255,255,255,0.55);
+      font-size: 0.82rem;
+      font-weight: 400;
+      padding-left: 10px;
+      border-left: 1px solid rgba(255,255,255,0.25);
+      margin-left: 2px;
+    }
+
+    @media (max-width: 480px) {
+      .logo-tagline { display: none; }
+    }
+
+    /* ── Main ── */
+    main {
+      flex: 1;
+      max-width: 960px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 36px 24px 32px;
+      min-width: 0;
+    }
+
+    h1 {
+      font-size: 1.7rem;
+      font-weight: 700;
+      color: #1a1a2e;
+      margin-bottom: 14px;
+      word-break: break-word;
+    }
+
+    h1 code {
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+      background: #e8f5ee;
+      color: #007a4d;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 0.9em;
+    }
+
+    hr {
+      border: none;
+      border-top: 2px solid #e0e0e0;
+      margin-bottom: 24px;
+    }
+
+    /* ── Table wrapper — horizontally scrollable on mid-size screens ── */
+    .table-wrapper {
+      width: 100%;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      border-radius: 10px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+      background: #fff;
+    }
+
+    table {
+      width: 100%;
+      min-width: 700px;       /* forces scroll before collapsing */
+      border-collapse: collapse;
+      font-size: 0.88rem;
+    }
+
+    thead th {
+      background: #1a1a2e;
+      color: #fff;
+      text-align: left;
+      padding: 13px 16px;
+      font-weight: 600;
+      font-size: 0.75rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    thead th:first-child { border-radius: 10px 0 0 0; }
+    thead th:last-child  { border-radius: 0 10px 0 0; }
+
+    tbody tr {
+      border-bottom: 1px solid #f0f0f0;
+    }
+    tbody tr:last-child { border-bottom: none; }
+
+    tbody td {
+      padding: 13px 16px;
+      color: #333;
+      vertical-align: middle;
+    }
+
+    .status-badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .status-badge.active  { background: #e6f9f0; color: #007a4d; }
+    .status-badge.lapsed  { background: #fde8e8; color: #c0392b; }
+
+    .ref-code {
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+      font-size: 0.8rem;
+      color: #555;
+      background: #f6f6f6;
+      padding: 3px 7px;
+      border-radius: 4px;
+    }
+
+    .duration-live {
+      font-variant-numeric: tabular-nums;
+      font-weight: 600;
+      color: #007a4d;
+      white-space: nowrap;
+    }
+
+    /* ── Mobile: card layout (≤ 680px) ── */
+    @media (max-width: 680px) {
+      main { padding: 20px 14px 24px; }
+
+      h1 { font-size: 1.2rem; margin-bottom: 10px; }
+
+      /* Remove the horizontal scroll / table; render as cards */
+      .table-wrapper {
+        background: transparent;
+        box-shadow: none;
+        overflow-x: visible;
+        border-radius: 0;
+      }
+
+      table, thead, tbody, th, td, tr { display: block; }
+
+      thead { display: none; }
+
+      table { min-width: unset; }
+
+      tbody tr {
+        background: #fff;
+        border-radius: 12px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        margin-bottom: 14px;
+        border-bottom: none;
+        padding: 4px 0;
+        overflow: hidden;
+      }
+
+      tbody td {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 16px;
+        font-size: 0.86rem;
+        border-bottom: 1px solid #f3f3f3;
+      }
+
+      tbody td:last-child { border-bottom: none; }
+
+      tbody td::before {
+        content: attr(data-label);
+        font-size: 0.68rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: #999;
+        flex-shrink: 0;
+        min-width: 80px;
+      }
+
+      .cell-value {
+        text-align: right;
+        word-break: break-word;
+        max-width: 60%;
+      }
+
+      .ref-code { font-size: 0.72rem; word-break: break-all; }
+    }
+
+    /* ── Support info ── */
+    .support-section {
+      margin-top: 32px;
+      background: #fff;
+      border-radius: 10px;
+      padding: 22px 24px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+      font-size: 0.86rem;
+      color: #555;
+      line-height: 1.75;
+    }
+
+    .support-section p { margin-bottom: 4px; }
+    .support-section p:last-child { margin-bottom: 0; }
+
+    .support-section a {
+      color: #007a4d;
+      font-weight: 600;
+      text-decoration: none;
+    }
+    .support-section a:hover { text-decoration: underline; }
+
+    @media (max-width: 680px) {
+      .support-section { padding: 16px; margin-top: 20px; }
+    }
+
+    /* ── Footer ── */
+    footer {
+      background: #1a1a2e;
+      color: #aaa;
+      text-align: center;
+      padding: 18px 16px;
+      font-size: 0.8rem;
+      margin-top: 40px;
+    }
+
+    footer .heart { color: #e74c3c; }
+  </style>
+</head>
+<body>
+
+  <!-- ── Header ── -->
+  <header>
+    <div class="header-inner">
+      <a href="index.html" class="logo" aria-label="Cuvva home">
+        <img src="cuvva-logo-white.svg" alt="" aria-hidden="true" />
+        <span class="logo-text">cuvva</span>
+        <span class="logo-tagline">check if a vehicle is insured by us</span>
+      </a>
+    </div>
+  </header>
+
+  <!-- ── Main content ── -->
+  <main>
+    <h1>Policies for <code>KR64HRG</code></h1>
+    <hr />
+
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>Reference</th>
+            <th>Policyholder</th>
+            <th>Start date</th>
+            <th>End date</th>
+            <th>Duration</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td data-label="Reference">
+              <span class="cell-value"><span class="ref-code">PERSP3CP2U3N4MZJ</span></span>
+            </td>
+            <td data-label="Policyholder">
+              <span class="cell-value">Dorohov Mihail & Vitaliia Drozdova</span>
+            </td>
+            <td data-label="Start date">
+              <span class="cell-value" id="start-date">—</span>
+            </td>
+            <td data-label="End date">
+              <span class="cell-value" id="end-date">—</span>
+            </td>
+            <td data-label="Duration">
+              <span class="cell-value duration-live" id="duration">—</span>
+            </td>
+            <td data-label="Status">
+              <span class="cell-value"><span class="status-badge active" id="status-badge">Active</span></span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ── Support info ── -->
+    <div class="support-section">
+      <p>If further clarification is needed, contact the team at
+        <a href="mailto:validation@cuvva.com">validation@cuvva.com</a>
+      </p>
+      <p>The team will respond within 2 hours on average between 9am and 9pm, Monday to Sunday</p>
+      <p>For overnight queries, Cuvva will respond at opening time next day</p>
+    </div>
+  </main>
+
+  <!-- ── Footer ── -->
+  <footer>
+    <p>Made with <span class="heart">❤️</span> by Cuvva</p>
+  </footer>
+
+  <script>
+    // Anchor: Apr 25 2026 10:00 AM local. Each cycle = exactly 2 days at 10:00 AM.
+    // Pattern: Apr 25 → Apr 27 (Mon) → Apr 29 (Wed) → May 1 (Fri) → May 3 (Sun) → ...
+    const ANCHOR = new Date(2026, 3, 25, 10, 0, 0, 0);
+
+    function getCycle() {
+      const now = new Date();
+
+      if (now < ANCHOR) {
+        const end = new Date(ANCHOR);
+        end.setDate(end.getDate() + 2);
+        end.setHours(10, 0, 0, 0);
+        return { start: new Date(ANCHOR), end };
+      }
+
+      // Jump close to the right cycle using ms estimate, then fine-tune with setDate
+      const roughCycles = Math.max(0, Math.floor((now - ANCHOR) / (2 * 24 * 60 * 60 * 1000)) - 1);
+      let start = new Date(ANCHOR);
+      start.setDate(start.getDate() + roughCycles * 2);
+      start.setHours(10, 0, 0, 0);
+      let end = new Date(start);
+      end.setDate(end.getDate() + 2);
+      end.setHours(10, 0, 0, 0);
+
+      while (now >= end) {
+        start = new Date(end);
+        end = new Date(end);
+        end.setDate(end.getDate() + 2);
+        end.setHours(10, 0, 0, 0);
+      }
+
+      return { start, end };
+    }
+
+    function ordinal(n) {
+      const s = ['th','st','nd','rd'], v = n % 100;
+      return n + (s[(v - 20) % 10] || s[v] || s[0]);
+    }
+
+    function fmtDate(d) {
+      const hh = String(d.getHours()).padStart(2,'0');
+      const mm = String(d.getMinutes()).padStart(2,'0');
+      const ss = String(d.getSeconds()).padStart(2,'0');
+      const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+      return `${hh}:${mm}:${ss} GMT on ${ordinal(d.getDate())} ${months[d.getMonth()]} ${d.getFullYear()}`;
+    }
+
+    function tick() {
+      const now = new Date();
+      const { start, end } = getCycle();
+
+      document.getElementById('start-date').textContent = fmtDate(start);
+      document.getElementById('end-date').textContent   = fmtDate(end);
+
+      const totalSec = Math.max(0, Math.floor((end - now) / 1000));
+      const days  = Math.floor(totalSec / 86400);
+      const hours = Math.floor((totalSec % 86400) / 3600);
+      const mins  = Math.floor((totalSec % 3600)  / 60);
+      const secs  = totalSec % 60;
+
+      const parts = [];
+      if (days  > 0) parts.push(`${days}d`);
+      if (hours > 0) parts.push(`${hours}h`);
+      if (mins  > 0) parts.push(`${mins}m`);
+      parts.push(`${secs}s`);
+
+      document.getElementById('duration').textContent = parts.join(' ') + ' left';
+
+      const badge = document.getElementById('status-badge');
+      badge.textContent = 'Active';
+      badge.className   = 'status-badge active';
+    }
+
+    tick();
+    setInterval(tick, 1000);
+  </script>
+
+</body>
+</html>
